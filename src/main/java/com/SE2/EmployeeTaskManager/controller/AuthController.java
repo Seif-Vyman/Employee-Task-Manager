@@ -6,15 +6,18 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
+import com.SE2.EmployeeTaskManager.service.UserService;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
+    private final UserService userService;
 
-    public AuthController(AuthenticationManager authenticationManager) {
+    public AuthController(AuthenticationManager authenticationManager, UserService userService) {
         this.authenticationManager = authenticationManager;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -33,5 +36,10 @@ public class AuthController {
         } catch (AuthenticationException ex) {
             return ResponseEntity.status(401).body("Login failed: " + ex.getMessage());
         }
+    }
+    @PostMapping("/register")
+    public ResponseEntity<User> registerUser(@RequestBody User user) {
+        User savedUser = userService.registerUser(user);
+        return ResponseEntity.ok(savedUser);
     }
 }
