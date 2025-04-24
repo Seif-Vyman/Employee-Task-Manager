@@ -67,6 +67,12 @@
     .login-input::placeholder {
       color: white;
     }
+    .message {
+      margin-top: 10px;
+      text-align: center;
+      color: #fff;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body style="background: #962d44">
@@ -74,7 +80,7 @@
 <div class="login-container">
   <div class="login-card">
     <h2>Register</h2>
-    <form method="post" action="/api/users/register">
+    <form id="registerForm">
       <input type="text" class="login-input" placeholder="Username" name="username" required>
       <input type="email" class="login-input" placeholder="Email" name="email" required>
       <input type="password" class="login-input" placeholder="Password" name="password" required>
@@ -88,11 +94,51 @@
 
       <button type="submit" class="login-button">Register</button>
     </form>
+    <div class="message" id="message"></div>
     <div class="text-center mt-4">
       <p class="text-white text-sm">Already have an account? <a href="login.html" class="underline hover:text-gray-300">Login</a></p>
     </div>
   </div>
 </div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const form = e.target;
+  const data = {
+    username: form.username.value,
+    email: form.email.value,
+    password: form.password.value,
+    role: form.role.value
+  };
+
+  try {
+    const response = await fetch('/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    const messageDiv = document.getElementById('message');
+    if (response.ok) {
+      messageDiv.textContent = 'Registration successful!';
+      messageDiv.style.color = '#4ade80'; // green
+      form.reset();
+    } else {
+      const error = await response.text();
+      messageDiv.textContent = 'Registration failed: ' + error;
+      messageDiv.style.color = '#f87171'; // red
+    }
+  } catch (err) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = 'Registration failed: ' + err.message;
+    messageDiv.style.color = '#f87171'; // red
+  }
+});
+</script>
 
 </body>
 </html>

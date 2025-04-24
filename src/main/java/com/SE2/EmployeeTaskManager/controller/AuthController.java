@@ -41,8 +41,11 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user) {
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
         User savedUser = userService.registerUser(user);
+        if(savedUser == null){
+            return ResponseEntity.badRequest().body("Username or Email already exists");
+        }
         return ResponseEntity.ok(savedUser);
     }
 }
