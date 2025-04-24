@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.2/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: rgb(246, 147, 129);
+    }
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-card {
+      background-color: rgba(53, 52, 52, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+      width: 300px;
+    }
+    .login-card h2 {
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .login-input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .login-button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4b1919;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .login-button:hover {
+      background-color: #5b3934;
+    }
+    .login-input::placeholder {
+      color: white;
+    }
+  </style>
+</head>
+<body style="background: #962d44">
+
+<div class="login-container">
+  <div class="login-card">
+    <h2>Login</h2>
+    <form method="POST" action="/auth/login">
+      <input type="text" class="login-input" name="username" placeholder="Username" required>
+      <input type="password" class="login-input" name="password" placeholder="Password" required>
+      <button type="submit" class="login-button">Login</button>
+
+      <!-- Show error if exists -->
+      <div style="color:red;">
+        <script>
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('error')) {
+              document.getElementById('error-message').innerText = "Invalid username or password!";
+            }
+        </script>
+      </div>
+    </form>
+    
+    <!-- 🌟 Register Link Added Here -->
+    <div class="text-center mt-4">
+      <p class="text-white">Don't have an account?</p>
+      <a href="register.html" class="text-sm text-white underline hover:text-gray-300">Register here</a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

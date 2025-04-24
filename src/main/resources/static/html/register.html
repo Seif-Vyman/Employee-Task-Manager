@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.2/tailwind.min.css">
+  <title>Register</title>
+  <style>
+    body {
+      background-color: rgb(246, 147, 129);
+    }
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-card {
+      background-color: rgba(53, 52, 52, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+      width: 300px;
+    }
+    .login-card h2 {
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .login-input, .role-select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    /* Style the role dropdown */
+    .role-select {
+      background-color: rgba(255, 255, 255, 0.3); /* Change background color */
+      color: white; /* Change text color */
+      border: 1px solid #4b1919; /* Border color */
+    }
+    .role-select option {
+      background-color: #4b1919; /* Background color for options */
+      color: white; /* Text color for options */
+    }
+    .role-select option:hover {
+      background-color: #5b3934; /* Hover color */
+    }
+    .login-button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4b1919;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .login-button:hover {
+      background-color: #5b3934;
+    }
+    .login-input::placeholder {
+      color: white;
+    }
+  </style>
+</head>
+<body style="background: #962d44">
+
+<div class="login-container">
+  <div class="login-card">
+    <h2>Register</h2>
+    <form method="post" action="/api/users/register">
+      <input type="text" class="login-input" placeholder="Username" name="username" required>
+      <input type="email" class="login-input" placeholder="Email" name="email" required>
+      <input type="password" class="login-input" placeholder="Password" name="password" required>
+
+      <!-- Role Dropdown with customized colors -->
+      <select name="role" class="role-select" required>
+        <option value="" disabled selected>Select Role</option>
+        <option value="MANAGER">Manager</option>
+        <option value="EMPLOYEE">Employee</option>
+      </select>
+
+      <button type="submit" class="login-button">Register</button>
+    </form>
+    <div class="text-center mt-4">
+      <p class="text-white text-sm">Already have an account? <a href="login.html" class="underline hover:text-gray-300">Login</a></p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
