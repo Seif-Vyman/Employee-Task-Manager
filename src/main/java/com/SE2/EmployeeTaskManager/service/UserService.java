@@ -18,6 +18,14 @@ public class UserService {
     }
 
     public User registerUser(User user) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            // Username exists
+            return null;
+        }
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            // Email exists
+            return null;
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
