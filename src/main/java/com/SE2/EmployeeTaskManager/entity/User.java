@@ -7,7 +7,8 @@ import lombok.Setter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import jakarta.validation.constraints.Email;
+
+import javax.validation.constraints.Email;
 import java.util.List;
 
 @Setter
