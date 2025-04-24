@@ -6,6 +6,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
+
+import com.SE2.EmployeeTaskManager.entity.User;
 import com.SE2.EmployeeTaskManager.service.UserService;
 
 @RestController
@@ -37,6 +39,7 @@ public class AuthController {
             return ResponseEntity.status(401).body("Login failed: " + ex.getMessage());
         }
     }
+
     @PostMapping("/register")
     public ResponseEntity<User> registerUser(@RequestBody User user) {
         User savedUser = userService.registerUser(user);
