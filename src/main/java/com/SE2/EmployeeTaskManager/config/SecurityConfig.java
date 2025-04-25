@@ -1,5 +1,6 @@
 package com.SE2.EmployeeTaskManager.config;
 
+import com.SE2.EmployeeTaskManager.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -7,29 +8,31 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import com.SE2.EmployeeTaskManager.service.CustomUserDetailsService;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtRequestFilter jwtRequestFilter;
 
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+    @Autowired
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService, JwtRequestFilter jwtRequestFilter) {
         this.customUserDetailsService = customUserDetailsService;
+        this.jwtRequestFilter = jwtRequestFilter;
     }
 
-    // Password encoder bean
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Dao Authentication Provider
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -38,32 +41,32 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    // Authentication Manager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // Security filter chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disabling CSRF for simplicity, customize if needed
-            .authorizeRequests()
-                .requestMatchers("/auth/**", "/users/register", "/html/**").permitAll() // Allow register and login pages
-                .anyRequest().authenticated() // Ensure all other requests are authenticated
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests()
+                .requestMatchers("/auth/**", "/users/register", "/html/**").permitAll()
+                .anyRequest().authenticated()
             .and()
-            .formLogin()
-                .loginPage("/html/login.html") // Custom login page
-                .loginProcessingUrl("/auth/login") // Endpoint to handle login POST
-                .defaultSuccessUrl("/html/auth.html", true) // Redirect to this page upon successful login
-                .failureUrl("/html/login.html?error=true") // Redirect back to login page on failure with error message
-                .permitAll();
-            // .and()
-            // .logout()
-            //     .logoutUrl("/auth/logout") // URL to log out the user
-            //     .logoutSuccessUrl("/html/login.html?logout") // Redirect after successful logout
-            //     .permitAll();
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Important for JWT
+            )
+            .formLogin(form -> form
+                .loginPage("/html/login.html")
+                .loginProcessingUrl("/auth/login")
+                .defaultSuccessUrl("/html/auth.html", true)
+                .failureUrl("/html/login.html?error=true")
+                .permitAll()
+            );
+
+        // ✅ Add JWT filter BEFORE username/password filter
+        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
