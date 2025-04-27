@@ -63,7 +63,14 @@ public class SecurityConfig {
                 .defaultSuccessUrl("/html/auth.html", true)
                 .failureUrl("/html/login.html?error=true")
                 .permitAll()
-            );
+            )
+            .cors(cors -> cors.configurationSource(request -> {
+                var corsConfig = new org.springframework.web.cors.CorsConfiguration();
+                corsConfig.setAllowedOrigins(java.util.Arrays.asList("http://localhost:5500"));  // URL بتاع Live Server
+                corsConfig.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE"));
+                corsConfig.setAllowedHeaders(java.util.Arrays.asList("*"));
+                return corsConfig;
+            }));
 
         // ✅ Add JWT filter BEFORE username/password filter
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

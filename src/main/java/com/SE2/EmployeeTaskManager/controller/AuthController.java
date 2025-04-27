@@ -2,10 +2,10 @@ package com.SE2.EmployeeTaskManager.controller;
 
 import com.SE2.EmployeeTaskManager.config.JwtUtil;
 import com.SE2.EmployeeTaskManager.dto.AuthResponse;
-import com.SE2.EmployeeTaskManager.entity.RefreshToken;
+import com.SE2.EmployeeTaskManager.entity.Token;
 import com.SE2.EmployeeTaskManager.entity.User;
 import com.SE2.EmployeeTaskManager.repository.UserRepository;
-import com.SE2.EmployeeTaskManager.service.RefreshTokenService;
+import com.SE2.EmployeeTaskManager.service.TokenService;
 import com.SE2.EmployeeTaskManager.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @RestController
@@ -24,7 +25,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
     private final JwtUtil jwtUtil;
-    private final RefreshTokenService refreshTokenService;
+    private final TokenService tokenService; // updated name from RefreshTokenService
     private final UserRepository userRepository;
 
     @Autowired
@@ -32,12 +33,12 @@ public class AuthController {
             AuthenticationManager authenticationManager,
             UserService userService,
             JwtUtil jwtUtil,
-            RefreshTokenService refreshTokenService,
+            TokenService tokenService,
             UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.jwtUtil = jwtUtil;
-        this.refreshTokenService = refreshTokenService;
+        this.tokenService = tokenService;
         this.userRepository = userRepository;
     }
 
@@ -49,13 +50,30 @@ public class AuthController {
             );
 
             if (authentication.isAuthenticated()) {
-                String token = jwtUtil.generateToken(username);
-                Optional<User> user = userService.findByUsername(username);
-                if (user.isEmpty()) return ResponseEntity.status(404).body("User not found");
+                Optional<User> userOptional = userService.findByUsername(username);
+                if (userOptional.isEmpty()) {
+                    return ResponseEntity.status(404).body("User not found");
+                }
 
-                RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.get().getId());
+                User user = userOptional.get();
 
-                return ResponseEntity.ok(new AuthResponse(token, refreshToken.getToken()));
+                // Generate tokens
+                String accessToken = jwtUtil.generateToken(username);
+                String refreshTokenStr = jwtUtil.generateRefreshToken(username);
+
+                // Save to DB
+                Token token = new Token();
+                token.setUser(user);
+                token.setAccessToken(accessToken);
+                token.setRefreshToken(refreshTokenStr);
+                token.setRefreshTokenExpiry(Instant.now().plusSeconds(7 * 24 * 60 * 60)); // 7 days
+                token.setRevoked(false);
+                token.setCreatedAt(Instant.now());
+
+                tokenService.saveToken(token);
+
+                // Return both tokens in response
+                return ResponseEntity.ok(new AuthResponse(accessToken, refreshTokenStr));
             } else {
                 return ResponseEntity.status(401).body("Invalid credentials");
             }
@@ -76,17 +94,22 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestParam String refreshToken) {
-        Optional<RefreshToken> tokenOptional = refreshTokenService.findByToken(refreshToken);
+        Optional<Token> tokenOptional = tokenService.findByRefreshToken(refreshToken);
 
         if (tokenOptional.isEmpty()) {
             return ResponseEntity.status(403).body("Refresh token not found");
         }
 
         try {
-            RefreshToken token = refreshTokenService.verifyExpiration(tokenOptional.get());
-            String accessToken = jwtUtil.generateToken(token.getUser().getUsername());
+            Token token = tokenService.verifyExpiration(tokenOptional.get());
 
-            return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken));
+            String newAccessToken = jwtUtil.generateToken(token.getUser().getUsername());
+
+            // Optional: update access token in DB if you want to track latest one
+            token.setAccessToken(newAccessToken);
+            tokenService.saveToken(token);
+
+            return ResponseEntity.ok(new AuthResponse(newAccessToken, refreshToken));
         } catch (RuntimeException ex) {
             return ResponseEntity.status(403).body("Refresh token expired. Please login again.");
         }
