@@ -63,65 +63,65 @@
 </head>
 <body style="background: #962d44">
 
-<div class="login-container">
-  <div class="login-card">
-    <h2>Login</h2>
-    <form id="loginForm">
-      <input type="text" class="login-input" name="username" placeholder="Username" required>
-      <input type="password" class="login-input" name="password" placeholder="Password" required>
-      <button type="submit" class="login-button">Login</button>
-    </form>
-    <div class="message" id="message"></div>
-    <!-- 🌟 Register Link Added Here -->
-    <div class="text-center mt-4">
-      <p class="text-white">Don't have an account?</p>
-      <a href="register.html" class="text-sm text-white underline hover:text-gray-300">Register here</a>
+  <div class="login-container">
+    <div class="login-card">
+      <h2>Login</h2>
+      <form id="loginForm">
+        <input type="text" class="login-input" id="username" placeholder="Username" required>
+        <input type="password" class="login-input" id="password" placeholder="Password" required>
+        <button type="submit" class="login-button">Login</button>
+      </form>
+      <div class="message" id="message"></div>
+      <div class="text-center mt-4">
+        <p class="text-white">Don't have an account?</p>
+        <a href="/html/register.html" class="text-sm text-white underline hover:text-gray-300">Register here</a>
+      </div>
     </div>
   </div>
-</div>
-
-<script>
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-
-  const form = e.target;
-  const username = form.username.value;
-  const password = form.password.value;
-
-  // Prepare data as application/x-www-form-urlencoded
-  const params = new URLSearchParams();
-  params.append('username', username);
-  params.append('password', password);
-
-  try {
-    const response = await fetch('/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: params
-    });
-
-    const messageDiv = document.getElementById('message');
-    if (response.ok) {
-      // Optionally show a message before redirecting
-      messageDiv.textContent = "Login successful! Redirecting...";
-      messageDiv.style.color = '#4ade80'; // green
-      setTimeout(() => {
-        window.location.href = "auth.html";
-      }, 1000); // Redirect after 1 second
-    } else {
-      const error = await response.text();
-      messageDiv.textContent = error;
+  
+  <script>
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+  
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+  
+    try {
+      const response = await fetch('/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      });
+  
+      const messageDiv = document.getElementById('message');
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Store both access and refresh tokens
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        
+        messageDiv.textContent = "Login successful! Redirecting...";
+        messageDiv.style.color = '#4ade80'; // green
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          window.location.href = "/html/dashboard.html";
+        }, 1000);
+      } else {
+        const error = await response.text();
+        messageDiv.textContent = error;
+        messageDiv.style.color = '#f87171'; // red
+      }
+    } catch (err) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = 'Login failed: ' + err.message;
       messageDiv.style.color = '#f87171'; // red
     }
-  } catch (err) {
-    const messageDiv = document.getElementById('message');
-    messageDiv.textContent = 'Login failed: ' + err.message;
-    messageDiv.style.color = '#f87171'; // red
-  }
-});
-</script>
-
-</body>
-</html>
+  });
+  </script>
+  
+  </body>
+  </html>

@@ -1,16 +1,17 @@
-package com.SE2.EmployeeTaskManager.service;
+package com.SE2.EmployeeTaskManager.security;
 
 import com.SE2.EmployeeTaskManager.entity.User;
 import com.SE2.EmployeeTaskManager.repository.UserRepository;
-import org.springframework.security.core.userdetails.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
-
     private final UserRepository userRepository;
 
     public CustomUserDetailsService(UserRepository userRepository) {
@@ -20,13 +21,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
-                      .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
+            user.getUsername(), 
+            user.getPassword(), 
+            Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name()))
         );
     }
 }
-

@@ -81,12 +81,11 @@
   <div class="login-card">
     <h2>Register</h2>
     <form id="registerForm">
-      <input type="text" class="login-input" placeholder="Username" name="username" required>
-      <input type="email" class="login-input" placeholder="Email" name="email" required>
-      <input type="password" class="login-input" placeholder="Password" name="password" required>
+      <input type="text" class="login-input" placeholder="Username" id="username" required>
+      <input type="email" class="login-input" placeholder="Email" id="email" required>
+      <input type="password" class="login-input" placeholder="Password" id="password" required>
 
-      <!-- Role Dropdown with customized colors -->
-      <select name="role" class="role-select" required>
+      <select id="role" class="role-select" required>
         <option value="" disabled selected>Select Role</option>
         <option value="MANAGER">Manager</option>
         <option value="EMPLOYEE">Employee</option>
@@ -96,7 +95,7 @@
     </form>
     <div class="message" id="message"></div>
     <div class="text-center mt-4">
-      <p class="text-white text-sm">Already have an account? <a href="login.html" class="underline hover:text-gray-300">Login</a></p>
+      <p class="text-white text-sm">Already have an account? <a href="/html/login.html" class="underline hover:text-gray-300">Login</a></p>
     </div>
   </div>
 </div>
@@ -105,12 +104,11 @@
 document.getElementById('registerForm').addEventListener('submit', async function(e) {
   e.preventDefault();
 
-  const form = e.target;
   const data = {
-    username: form.username.value,
-    email: form.email.value,
-    password: form.password.value,
-    role: form.role.value
+    username: document.getElementById('username').value,
+    email: document.getElementById('email').value,
+    password: document.getElementById('password').value,
+    role: document.getElementById('role').value
   };
 
   try {
@@ -124,9 +122,12 @@ document.getElementById('registerForm').addEventListener('submit', async functio
 
     const messageDiv = document.getElementById('message');
     if (response.ok) {
-      messageDiv.textContent = 'Registration successful!';
+      messageDiv.textContent = 'Registration successful! Redirecting to login...';
       messageDiv.style.color = '#4ade80'; // green
-      form.reset();
+      
+      setTimeout(() => {
+        window.location.href = "/html/login.html";
+      }, 1500);
     } else {
       const error = await response.text();
       messageDiv.textContent = 'Registration failed: ' + error;

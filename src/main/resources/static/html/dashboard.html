@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.2/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h1 id="welcomeMessage" class="text-2xl font-bold mb-4">Welcome</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-blue-100 p-4 rounded">
+                    <h2 class="font-semibold">Your Profile</h2>
+                    <p id="userDetails">Loading user details...</p>
+                </div>
+                
+                <div class="bg-green-100 p-4 rounded">
+                    <h2 class="font-semibold">Quick Actions</h2>
+                    <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded mt-2">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Token refresh function
+        async function refreshToken() {
+            try {
+                const refreshToken = localStorage.getItem('refreshToken');
+                const response = await fetch('/auth/refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ refreshToken })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('accessToken', data.accessToken);
+                    // Optionally update refresh token
+                    if (data.refreshToken) {
+                        localStorage.setItem('refreshToken', data.refreshToken);
+                    }
+                    return data.accessToken;
+                } else {
+                    throw new Error('Token refresh failed');
+                }
+            } catch (error) {
+                console.error('Refresh token error:', error);
+                logout();
+                return null;
+            }
+        }
+
+
+    
+        // Check if user is authenticated
+        function checkAuth() {
+            const token = localStorage.getItem('accessToken');
+            const refreshToken = localStorage.getItem('refreshToken');
+            
+            if (!token || !refreshToken) {
+                logout();
+                return false;
+            }
+            return true;
+        }
+
+        // Fetch user details with token refresh handling
+        async function fetchUserDetails() {
+            try {
+                let token = localStorage.getItem('accessToken');
+                
+                const response = await fetch('/api/users/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                // If unauthorized, try to refresh token
+                if (response.status === 401) {
+                    token = await refreshToken();
+                    if (!token) return;
+
+                    // Retry fetch with new token
+                    const retryResponse = await fetch('/api/users/me', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!retryResponse.ok) {
+                        throw new Error('Failed to fetch user details');
+                    }
+
+                    const user = await retryResponse.json();
+                    document.getElementById('welcomeMessage').textContent = `Welcome, ${user.username}`;
+                    document.getElementById('userDetails').textContent = `Role: ${user.role}`;
+                } else if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('welcomeMessage').textContent = `Welcome, ${user.username}`;
+                    document.getElementById('userDetails').textContent = `Role: ${user.role}`;
+                } else {
+                    throw new Error('Failed to fetch user details');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load user details');
+                logout();
+            }
+        }
+
+        // Logout functionality
+        function logout() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            window.location.href = '/html/login.html';
+        }
+
+        // Setup logout button
+        function setupLogout() {
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                fetchUserDetails();
+                setupLogout();
+            }
+        });
+    </script>
+</body>
+</html>

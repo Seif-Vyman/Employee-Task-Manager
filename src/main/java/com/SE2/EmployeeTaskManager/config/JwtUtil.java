@@ -8,13 +8,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Date;
 
 import com.SE2.EmployeeTaskManager.config.JwtUtil;
-import com.SE2.EmployeeTaskManager.dto.AuthResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Component
 public class JwtUtil {
 
-    private final String SECRET_KEY = "yourSecretKey";
+    private final String SECRET_KEY = "4234238479ksdfasdf98df912894ehfdsajifh";
 
     public String generateToken(String username) {
         return Jwts.builder()
