@@ -1,7 +1,10 @@
 package com.SE2.EmployeeTaskManager.service;
 
+import com.SE2.EmployeeTaskManager.config.JwtUtil;
 import com.SE2.EmployeeTaskManager.entity.User;
 import com.SE2.EmployeeTaskManager.repository.UserRepository;
+import com.SE2.EmployeeTaskManager.util.JasyptUtil;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,15 +30,24 @@ public class UserService {
             return null;
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setEmail(JasyptUtil.encrypt(user.getEmail()));
         return userRepository.save(user);
     }
 
     public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
+        return userRepository.findByUsername(username)
+        .map(user -> {
+            user.setEmail(JasyptUtil.decrypt(user.getEmail()));
+            return user;
+        });
     }
 
     public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
+        return userRepository.findById(id)
+        .map(user -> {
+            user.setEmail(JasyptUtil.decrypt(user.getEmail()));
+            return user;
+        });
     }
 
 }

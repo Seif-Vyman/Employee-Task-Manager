@@ -19,6 +19,7 @@
                 <div class="bg-blue-100 p-4 rounded">
                     <h2 class="font-semibold">Your Profile</h2>
                     <p id="userDetails">Loading user details...</p>
+                    <p id="userEmail" class="mt-2">Loading email...</p>
                 </div>
                 
                 <div class="bg-green-100 p-4 rounded">
@@ -106,10 +107,12 @@
                     const user = await retryResponse.json();
                     document.getElementById('welcomeMessage').textContent = `Welcome, ${user.username}`;
                     document.getElementById('userDetails').textContent = `Role: ${user.role}`;
+                    document.getElementById('userEmail').textContent = `Email: ${user.email}`;
                 } else if (response.ok) {
                     const user = await response.json();
                     document.getElementById('welcomeMessage').textContent = `Welcome, ${user.username}`;
                     document.getElementById('userDetails').textContent = `Role: ${user.role}`;
+                    document.getElementById('userEmail').textContent = `Email: ${user.email}`;
                 } else {
                     throw new Error('Failed to fetch user details');
                 }
