@@ -30,6 +30,10 @@ public class Task {
     @JoinColumn(name = "assigned_to")
     private User assignedTo;
 
+
+    @Column(name = "deadline", nullable = true)
+    private LocalDateTime deadline;
+
     // Getters and Setters
 
 }

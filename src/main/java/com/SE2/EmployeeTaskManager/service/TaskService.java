@@ -5,7 +5,8 @@ import com.SE2.EmployeeTaskManager.entity.User;
 import com.SE2.EmployeeTaskManager.repository.TaskRepository;
 import com.SE2.EmployeeTaskManager.repository.UserRepository;
 import org.springframework.stereotype.Service;
-
+import org.springframework.scheduling.annotation.Scheduled;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,10 @@ public class TaskService {
             throw new RuntimeException("Assigned user not found");
         }
     }
+    
+    public Task saveTask(Task task) {
+        return taskRepository.save(task);
+    }
 
     public List<Task> getTasksByUser(Long userId) {
         Optional<User> userOpt = userRepository.findById(userId);
@@ -43,6 +48,11 @@ public class TaskService {
         return taskRepository.findByStatus(status);
     }
 
+    public Task getTaskById(Long taskId) {
+        return taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+    }
+
     public Task updateTaskStatus(Long taskId, String status) {
         Optional<Task> taskOpt = taskRepository.findById(taskId);
         if (taskOpt.isPresent()) {
@@ -51,6 +61,22 @@ public class TaskService {
             return taskRepository.save(task);
         } else {
             throw new RuntimeException("Task not found");
+        }
+    }
+
+    @Scheduled(fixedRate = 5000) // every 5 sec
+    public void autoInvalidateOverdueTasks() {
+        List<Task> tasks = getAllTasks(); // Or taskRepository.findAll();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Task task : tasks) {
+            if (task.getDeadline() != null
+                    && task.getDeadline().isBefore(now)
+                    && !"invalid".equalsIgnoreCase(task.getStatus())
+                    && !"finished".equalsIgnoreCase(task.getStatus())) {
+                task.setStatus("invalid");
+                saveTask(task); // or taskRepository.save(task)
+            }
         }
     }
 

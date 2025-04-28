@@ -4,7 +4,7 @@ import com.SE2.EmployeeTaskManager.entity.User;
 import com.SE2.EmployeeTaskManager.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -36,6 +36,10 @@ public class UserService {
 
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
+    }
+
+    public List<User> getEmployees() {
+        return userRepository.findByRole(User.Role.EMPLOYEE);  // CORRECT: Passing the enum value
     }
 
 }

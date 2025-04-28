@@ -1,6 +1,7 @@
 package com.SE2.EmployeeTaskManager.controller;
 
 import com.SE2.EmployeeTaskManager.entity.Task;
+import com.SE2.EmployeeTaskManager.service.UserService;
 import com.SE2.EmployeeTaskManager.service.TaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,8 +12,11 @@ import java.util.List;
 @RequestMapping("/api/tasks")
 public class TaskController {
     private final TaskService taskService;
-    public TaskController(TaskService taskService) {
+    private final UserService userService;
+
+    public TaskController(TaskService taskService, UserService userService) {
         this.taskService = taskService;
+        this.userService = userService;
     }
 
     @PostMapping
