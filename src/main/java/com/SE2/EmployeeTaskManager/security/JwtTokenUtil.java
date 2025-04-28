@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import com.SE2.EmployeeTaskManager.entity.RefreshToken;
+import com.SE2.EmployeeTaskManager.service.RefreshTokenService;
+
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,6 +28,14 @@ public class JwtTokenUtil {
     
     // Refresh token expiration (7 days)
     private long refreshTokenExpiration = 604800000L;
+    private final RefreshTokenService refreshTokenService;
+
+    @Value("${app.jwt.accessToken.duration}")
+    private long accessTokenDuration;
+
+    public JwtTokenUtil(RefreshTokenService refreshTokenService) {
+        this.refreshTokenService = refreshTokenService;
+    }
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
@@ -36,9 +47,7 @@ public class JwtTokenUtil {
         return createToken(claims, userDetails.getUsername(), accessTokenExpiration);
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
-        return createToken(new HashMap<>(), userDetails.getUsername(), refreshTokenExpiration);
-    }
+  
 
     private String createToken(Map<String, Object> claims, String subject, long expiration) {
         return Jwts.builder()
@@ -52,9 +61,21 @@ public class JwtTokenUtil {
 
     // Existing methods...
 
-    public boolean validateRefreshToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    public String generateRefreshToken(UserDetails userDetails) {
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUsername());
+        return refreshToken.getToken();
+    }
+
+    public boolean validateRefreshToken(String token) {
+        try {
+            RefreshToken refreshToken = refreshTokenService.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+            
+            refreshTokenService.verifyExpiration(refreshToken);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 
