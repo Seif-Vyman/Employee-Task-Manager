@@ -63,6 +63,7 @@
 </head>
 <body style="background: #962d44">
 
+<<<<<<< HEAD
   <div class="login-container">
     <div class="login-card">
       <h2>Login</h2>
@@ -118,6 +119,56 @@
     } catch (err) {
       const messageDiv = document.getElementById('message');
       messageDiv.textContent = 'Login failed: ' + err.message;
+=======
+<div class="login-container">
+  <div class="login-card">
+    <h2>Login</h2>
+    <form method="POST" action="/auth/login">
+      <input type="text" class="login-input" name="username" placeholder="Username" required>
+      <input type="password" class="login-input" name="password" placeholder="Password" required>
+      <button type="submit" class="login-button">Login</button>
+    </form>
+    <div class="message" id="message"></div>
+    <!-- 🌟 Register Link Added Here -->
+    <div class="text-center mt-4">
+      <p class="text-white">Don't have an account?</p>
+      <a href="register.html" class="text-sm text-white underline hover:text-gray-300">Register here</a>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const form = e.target;
+  const username = form.username.value;
+  const password = form.password.value;
+
+  // Prepare data as application/x-www-form-urlencoded
+  const params = new URLSearchParams();
+  params.append('username', username);
+  params.append('password', password);
+
+  try {
+    const response = await fetch('/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params
+    });
+
+    const messageDiv = document.getElementById('message');
+    if (response.ok) {
+      // Optionally show a message before redirecting
+      messageDiv.textContent = "Login successful! Redirecting...";
+      messageDiv.style.color = '#4ade80'; // green
+        // DO NOT manually redirect – Spring Security will handle it
+    } else {
+      const error = await response.text();
+      messageDiv.textContent = error;
+>>>>>>> 9940b7e (dashboards)
       messageDiv.style.color = '#f87171'; // red
     }
   });

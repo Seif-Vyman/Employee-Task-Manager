@@ -1,0 +1,371 @@
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.2/tailwind.min.css">
+  <title>Employee Dashboard</title>
+  <style>
+    /* Your custom CSS styles here */
+    .send-email-button {
+      background-color: #3490dc;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .send-email-button:hover {
+      background-color: #2779bd;
+    }
+
+    .add-event-form {
+      display: none;
+    }
+
+    .sidebar-link {
+      margin-bottom: 10px;
+      padding: 10px 20px;
+      border-radius: 5px;
+      color: #ccc;
+      text-decoration: none;
+      transition: background-color 0.3s, color 0.3s;
+      cursor: pointer;
+    }
+
+    .sidebar-link:hover {
+      background-color: #555;
+      color: #fff;
+    }
+
+    .content-area {
+      margin-left: 240px;
+      padding: 20px;
+    }
+
+    .content-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    #content {
+      margin-left: 260px;
+      padding: 20px;
+      transition: margin-left 0.3s;
+    }
+
+    #sidebar {
+      width: 240px;
+      height: 100vh;
+      background-color: rgba(38, 36, 36, 0.51);
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+
+    * {
+      color: aliceblue;
+    }
+
+    .sidebar-link.active {
+      background-color: #555;
+      color: #fff;
+    }
+
+    .sidebar-link.active {
+      background-color: #555;
+      color: #fff;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th,
+    td {
+      padding: 8px;
+      text-align: left;
+    }
+
+    .add-event-form {
+      background-color: #333030;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+      width: 50%;
+    }
+
+    .add-event-form h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .add-event-form label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .add-event-form input,
+    .add-event-form textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      color: black;
+    }
+
+    .add-event-form button {
+      background-color: #3490dc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .add-event-form button:hover {
+      background-color: #2779bd;
+    }
+
+    th {
+      background-color: #282626;
+    }
+
+    tr {
+      background-color: #4a5568;
+    }
+
+    tr:hover {
+      background-color: #4b8aa1;
+    }
+
+    .message-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    .message {
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0px 2px 14px rgba(0, 0, 0, 0.1);
+      background-color: #d36a6a;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .message p {
+      margin: 0;
+      padding: 5px 10px;
+    }
+
+    .logout-link {
+      padding: 10px 20px;
+      border-radius: 5px;
+      color: #ccc;
+      text-decoration: none;
+      background-color: #962d44;
+      transition: background-color 0.3s, color 0.3s;
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+
+    .logout-link:hover {
+      background-color: #555;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body style="background: #962d44">
+  <div class="message-container" data-timeout="5000"> <!-- 5000 milliseconds = 5 seconds -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="message" style="display: none;">
+      {% for message in messages %}
+      <p>{{ message }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+  </div>
+  <div id="sidebar" class="bg-gray-900 text-white h-screen w-64 fixed top-0 left-0 p-4">
+    <h2 class="text-xl font-semibold mb-4" th:text="${employee.username} + ' Dashboard' "></h2>
+
+
+
+
+
+    <a href="#" class="sidebar-link active bg-blue-500" onclick="showAddAdmin()">
+      <svg class="w-6 h-6 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1.105-6.972a.5.5 0 00-.002 0h-.001a.5.5 0 00-.442.383l-.093.498-.504.083a.5.5 0 00-.263.876l.363.36-.082.503a.5.5 0 00.294.524.498.498 0 00.566-.122l.407-.405.407.404a.498.498 0 00.565.122.5.5 0 00.293-.524l-.082-.504.363-.36a.5.5 0 00-.262-.876l-.504-.082-.094-.498a.5.5 0 00-.444-.383h-.001a.5.5 0 00-.002 0z"
+          clip-rule="evenodd"></path>
+      </svg>
+
+
+      View Tasks
+      <a href="{{ url_for('logout') }}" class="logout-link" style="margin-top: auto; margin-bottom: 0;">
+        Logout
+      </a>
+
+  </div>
+  <div id="content" class="content-area">
+    <!-- Main content area -->
+    <h1 id="content-title" class="content-title">View Tasks</h1>
+
+
+
+
+
+    <div id="add-admin-content" class="hidden" style="display: block;">
+
+
+      {% for task in tasks %}
+
+      {% endfor %}
+      <form method="get" th:action="@{/employee/dashboard}">
+        <label>
+          <input type="checkbox" name="filterByStatus" th:checked="${filterByStatus ? 'checked' : null}"
+            onchange="this.form.submit()" />
+          Filter by status
+        </label>
+      </form>
+      <table class="rounded-lg overflow-hidden">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="text-left py-3 px-4 font-semibold">Tasks title</th>
+            <th class="text-left py-3 px-4 font-semibold">Description</th>
+            <th class="text-left py-3 px-4 font-semibold">Deadline</th>
+            <th class="text-left py-3 px-4 font-semibold">Status</th>
+            <th class="text-left py-3 px-4 font-semibold">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="task : ${tasks}" th:if="${task != null}">
+            <td th:text="${task.title}"></td>
+            <td th:text="${task.description}"></td>
+            <td th:text="${task.deadline}"></td>
+            <td th:text="${task.deadline != null and task.deadline.isBefore(now) ? 'Invalid' : task.status}"></td>
+            <td>
+              <span th:if="${task.deadline != null and task.deadline.isBefore(now)}">Invalid</span>
+              <span th:unless="${task.deadline != null and task.deadline.isBefore(now)}">
+                <div th:switch="${task.status}">
+                  <form th:case="'pending'"
+                    th:action="@{'/tasks/updateStatus/' + ${task.id} + '?filterByStatus=' + ${filterByStatus}}"
+                    method="post">
+                    <button class="send-email-button" type="submit">Start</button>
+                  </form>
+                  <form th:case="'in progress'"
+                    th:action="@{'/tasks/updateStatus/' + ${task.id} + '?filterByStatus=' + ${filterByStatus}}"
+                    method="post">
+                    <button class="send-email-button" type="submit">Finish</button>
+                  </form>
+                  <span th:case="'finished'">Done</span>
+                </div>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+
+
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const sidebarLinks = document.querySelectorAll('#sidebar a');
+      const addAdminContent = document.getElementById('add-admin-content');
+      const contentTitle = document.getElementById('content-title');
+
+      function getUserIdFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('userId');
+      }
+
+      sidebarLinks.forEach(link => {
+        link.addEventListener('click', function (event) {
+          event.preventDefault();
+          sidebarLinks.forEach(item => item.classList.remove('active', 'bg-blue-500'));
+          this.classList.add('active', 'bg-blue-500');
+          const option = this.textContent.trim();
+          showContent(option);
+        });
+      });
+
+      function showContent(option) {
+        contentTitle.textContent = option;
+        hideAllContent();
+        if (option === 'View Tasks') {
+          addAdminContent.style.display = 'block';
+          fetchAndDisplayTasks();
+        }
+      }
+
+      function hideAllContent() {
+        addAdminContent.style.display = 'none';
+      }
+
+      function fetchAndDisplayTasks() {
+        const userId = getUserIdFromUrl();
+        if (!userId) {
+          console.error('No userId in URL!');
+          return;
+        }
+        fetch(`/api/tasks/user/${userId}`)
+          .then(response => {
+            if (response.ok) return response.json();
+            else window.location.replace('/html/login.html');
+          })
+          .then(tasks => {
+            if (!tasks) return;
+            const tbody = addAdminContent.querySelector('tbody');
+            tbody.innerHTML = '';
+            tasks.forEach(task => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>${task.title}</td>
+                <td>${task.description}</td>
+                <td>${task.dueDate ? task.dueDate : ''}</td>
+                <td>${task.status}</td>
+                <td>
+                  <form action="/tasks/updateStatus/${task.id}" method="post">
+                    <button class="send-email-button" type="submit">update status</button>
+                  </form>
+                </td>
+              `;
+              tbody.appendChild(row);
+            });
+          })
+          .catch(err => {
+            console.error('Error fetching tasks:', err);
+          });
+      }
+
+      // Auto-fetch tasks if "View Tasks" is visible on load
+      if (addAdminContent && !addAdminContent.classList.contains('hidden') && addAdminContent.style.display !== 'none') {
+        fetchAndDisplayTasks();
+      }
+    });
+  </script>
+
+
+
+
+</body>
+
+</html>

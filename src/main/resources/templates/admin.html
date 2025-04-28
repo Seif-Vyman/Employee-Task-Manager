@@ -1,0 +1,225 @@
+<html lang="en" xmlns:th="http://www.thymeleaf.org"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.2/tailwind.min.css">
+  <title>Manager Dashboard</title>
+  <style>
+    .send-email-button {
+      background-color: #3490dc;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .send-email-button:hover { background-color: #2779bd; }
+    .add-event-form { display: none; }
+    .sidebar-link {
+      margin-bottom: 10px;
+      padding: 10px 20px;
+      border-radius: 5px;
+      color: #ccc;
+      text-decoration: none;
+      transition: background-color 0.3s, color 0.3s;
+      cursor: pointer;
+    }
+    .sidebar-link:hover {
+      background-color: #555;
+      color: #fff;
+    }
+    .content-area { margin-left: 240px; padding: 20px; }
+    .content-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+    #content { margin-left: 260px; padding: 20px; transition: margin-left 0.3s; }
+    #sidebar {
+      width: 240px;
+      height: 100vh;
+      background-color: rgba(38, 36, 36, 0.51);
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+    * { color: aliceblue; }
+    .sidebar-link.active {
+      background-color: #555;
+      color: #fff;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td { padding: 8px; text-align: left; }
+    .add-event-form {
+      background-color: #333030;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+      width: 50%;
+    }
+    .add-event-form h2 { font-size: 1.5rem; margin-bottom: 10px; }
+    .add-event-form label { display: block; margin-bottom: 5px; }
+    .add-event-form input,
+    .add-event-form textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      color: black;
+    }
+    .add-event-form button {
+      background-color: #3490dc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .add-event-form button:hover { background-color: #2779bd; }
+    th { background-color: #282626; }
+    tr { background-color: #4a5568; }
+    tr:hover { background-color: #4b8aa1; }
+    .message-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+    .message {
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0px 2px 14px rgba(0, 0, 0, 0.1);
+      background-color: #d36a6a;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .message p { margin: 0; padding: 5px 10px; }
+  </style>
+</head>
+<body style="background: #808080">
+<div id="sidebar" class="bg-gray-900 text-white h-screen w-64 fixed top-0 left-0 p-4">
+  <h2 class="text-xl font-semibold mb-4">Manager Dashboard</h2>
+  <!-- /////////////////////////////////  FIX URL  //////////////////////////////////// -->
+  
+  <a href="#" class="sidebar-link active bg-blue-500" onclick="showAddTask()">
+    <svg class="w-6 h-6 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm10 0h2a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1h2V1a1 1 0 112 0v1h4V1a1 1 0 112 0v1zM6 5a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 4a1 1 0 100 2h8a1 1 0 100-2H7zm-1 4a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+    </svg>
+    Add Task
+  </a>
+  <a href="#" class="sidebar-link" onclick="showTasks()">
+    <svg class="w-6 h-6 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1.105-6.972a.5.5 0 00-.002 0h-.001a.5.5 0 00-.442.383l-.093.498-.504.083a.5.5 0 00-.263.876l.363.36-.082.503a.5.5 0 00.294.524.498.498 0 00.566-.122l.407-.405.407.404a.498.498 0 00.565.122.5.5 0 00.293-.524l-.082-.504.363-.36a.5.5 0 00-.262-.876l-.504-.082-.094-.498a.5.5 0 00-.444-.383h-.001a.5.5 0 00-.002 0z" clip-rule="evenodd"></path>
+    </svg>
+    View Tasks
+  </a>
+</div>
+<div id="content" class="content-area">
+  <h1 id="content-title" class="content-title">Add Task</h1>
+  <div id="employees-content" class="hidden" style="display: none;">
+    
+  </div>
+
+  <div id="add-task-content" class="hidden" style="display: block;">
+    <div class="w-full max-w-xl mx-auto">
+      <!-- url URLLLLLLLLLL -->
+      <form th:action="@{/tasks/add}" method="post" class="shadow-md rounded px-8 pt-6 pb-8 mb-4" style="background-color: rgb(42,47,46)">
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-2">Employee ID</label>
+          <input name="employee_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" placeholder="Employee ID">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-2">Title</label>
+          <input name="title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" placeholder="Title">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-2">Description</label>
+          <textarea name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Description"></textarea>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-2">Due Date</label>
+          <input name="due_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="date">
+        </div>
+        <div class="flex items-center justify-between">
+          <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="show-tasks" style="display: none;">
+    <table class="rounded-lg overflow-hidden">
+      <thead class="bg-gray-100">
+      <tr>
+        <th class="text-left py-3 px-4 font-semibold">Task Title</th>
+        <th class="text-left py-3 px-4 font-semibold">Employee ID</th>
+        <th class="text-left py-3 px-4 font-semibold">Name</th>
+        <th class="text-left py-3 px-4 font-semibold">Email</th>
+        <th class="text-left py-3 px-4 font-semibold">Task Status</th>
+        <th class="text-left py-3 px-4 font-semibold">Deadline</th>
+      </tr>
+      </thead>
+      <tbody>
+         <!-- /////////////////////////// -->
+      <tr th:each="task : ${tasks}">
+        <td th:text="${task.title}" class="text-left py-3 px-4"></td>
+        <td th:text="${task.assignedTo.id}" class="text-left py-3 px-4"></td>
+        <td th:text="${task.assignedTo.username}" class="text-left py-3 px-4"></td>
+        <td th:text="${task.assignedTo.email}" class="text-left py-3 px-4"></td>
+        <td th:text="${task.status}" class="text-left py-3 px-4"></td>
+        <td th:text="${task.deadline}" class="text-left py-3 px-4"></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  setTimeout(function() {
+    const flashMessages = document.querySelectorAll('.message');
+    flashMessages.forEach(message => {
+      message.style.display = 'none';
+    });
+  }, 5000);
+
+  const sidebarLinks = document.querySelectorAll('#sidebar a');
+  const contentTitle = document.getElementById('content-title');
+  const employeesContent = document.getElementById('employees-content');
+  const addTaskContent = document.getElementById('add-task-content');
+  const addAdminContent = document.getElementById('show-tasks');
+
+  sidebarLinks.forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      sidebarLinks.forEach(item => item.classList.remove('active', 'bg-blue-500'));
+      link.classList.add('active', 'bg-blue-500');
+      const option = link.textContent.trim();
+      showContent(option);
+    });
+  });
+
+  function showContent(option) {
+    contentTitle.textContent = option;
+    employeesContent.style.display = 'none';
+    addTaskContent.style.display = 'none';
+    addAdminContent.style.display = 'none';
+
+    if (option === 'Employees') {
+      employeesContent.style.display = 'block';
+    } else if (option === 'Add Task') {
+      addTaskContent.style.display = 'block';
+    } else if (option === 'View Tasks') {
+      addAdminContent.style.display = 'block';
+    }
+  }
+</script>
+
+</body></html>

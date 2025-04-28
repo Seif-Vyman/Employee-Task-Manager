@@ -7,7 +7,7 @@ import com.SE2.EmployeeTaskManager.util.JasyptUtil;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -48,6 +48,10 @@ public class UserService {
             user.setEmail(JasyptUtil.decrypt(user.getEmail()));
             return user;
         });
+    }
+
+    public List<User> getEmployees() {
+        return userRepository.findByRole(User.Role.EMPLOYEE);  // CORRECT: Passing the enum value
     }
 
 }
