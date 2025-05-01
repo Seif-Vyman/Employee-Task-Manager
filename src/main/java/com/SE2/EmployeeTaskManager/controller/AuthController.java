@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
+import com.SE2.EmployeeTaskManager.service.UserService;
 
 @RestController
 @RequestMapping("/auth")
@@ -78,6 +79,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Error refreshing token");
         }
     }
+
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
