@@ -49,6 +49,9 @@ public class UserService {
             return user;
         });
     }
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
 
     public List<User> getEmployees() {
         return userRepository.findByRole(User.Role.EMPLOYEE);  // CORRECT: Passing the enum value
