@@ -66,13 +66,12 @@
 <div class="login-container">
   <div class="login-card">
     <h2>Login</h2>
-    <form method="POST" action="/auth/login">
+    <form id="loginForm">
       <input type="text" class="login-input" name="username" placeholder="Username" required>
       <input type="password" class="login-input" name="password" placeholder="Password" required>
       <button type="submit" class="login-button">Login</button>
     </form>
     <div class="message" id="message"></div>
-    <!-- 🌟 Register Link Added Here -->
     <div class="text-center mt-4">
       <p class="text-white">Don't have an account?</p>
       <a href="register.html" class="text-sm text-white underline hover:text-gray-300">Register here</a>
@@ -88,33 +87,45 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   const username = form.username.value;
   const password = form.password.value;
 
-  // Prepare data as application/x-www-form-urlencoded
-  const params = new URLSearchParams();
-  params.append('username', username);
-  params.append('password', password);
+  const messageDiv = document.getElementById('message');
 
   try {
     const response = await fetch('/auth/login', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/json'
       },
-      body: params
+      body: JSON.stringify({ username, password })
     });
 
-    const messageDiv = document.getElementById('message');
     if (response.ok) {
-      // Optionally show a message before redirecting
+      const data = await response.json();
+      // Optionally store the token locally (if using JWT)
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
       messageDiv.textContent = "Login successful! Redirecting...";
       messageDiv.style.color = '#4ade80'; // green
-        // DO NOT manually redirect – Spring Security will handle it
+
+      // Role-based redirect
+      if (data.roles && Array.isArray(data.roles)) {
+        if (data.roles.includes('ROLE_MANAGER')) {
+          window.location.href = 'admin.html';
+        } else if (data.roles.includes('ROLE_EMPLOYEE')) {
+          window.location.href = 'employee.html';
+        } else {
+          window.location.href = 'user.html'; // fallback or general user page
+        }
+      } else {
+        messageDiv.textContent = "Login succeeded, but no role found.";
+        messageDiv.style.color = '#f87171'; // red
+      }
     } else {
       const error = await response.text();
-      messageDiv.textContent = error;
+      messageDiv.textContent = error || "Login failed.";
       messageDiv.style.color = '#f87171'; // red
     }
   } catch (err) {
-    const messageDiv = document.getElementById('message');
     messageDiv.textContent = 'Login failed: ' + err.message;
     messageDiv.style.color = '#f87171'; // red
   }

@@ -12,27 +12,22 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.SE2.EmployeeTaskManager.service.CustomUserDetailsService;
-import com.SE2.EmployeeTaskManager.security.CustomAuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
-    private final CustomAuthenticationSuccessHandler successHandler;
 
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService, CustomAuthenticationSuccessHandler successHandler) {
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
         this.customUserDetailsService = customUserDetailsService;
-        this.successHandler = successHandler;
     }
 
-    // Password encoder bean
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Dao Authentication Provider
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -41,38 +36,40 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    // Authentication Manager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // @Bean
-    // public CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler() {
-    //     return new CustomAuthenticationSuccessHandler();
-    // }
-
-    // Security filter chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disabling CSRF for simplicity, customize if needed
-            .authorizeRequests()
-                .requestMatchers("/auth/**", "/users/register", "/html/**").permitAll() // Allow register and login pages
-                .requestMatchers("/api/tasks/user/{userId}").authenticated()
-                .anyRequest().authenticated() // Ensure all other requests are authenticated
-            .and()
-            .formLogin()
-                .loginPage("/html/login.html") // Custom login page
-                .loginProcessingUrl("/auth/login") // Endpoint to handle login POST
-                .successHandler(successHandler) // Redirect to this page upon successful login
-                .failureUrl("/html/login.html?error=true") // Redirect back to login page on failure with error message
-                .permitAll();
-            // .and()
-            // .logout()
-            //     .logoutUrl("/auth/logout") // URL to log out the user
-            //     .logoutSuccessUrl("/html/login.html?logout") // Redirect after successful logout
-            //     .permitAll();
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(authz -> authz
+                        // Permit all static files (html, css, js, etc)
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/login.html",
+                                "/register.html",
+                                "/manager.html",
+                                "/employee.html",
+                                "/user.html",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/favicon.ico")
+                        .permitAll()
+                        // Permit register and login endpoints
+                        .requestMatchers("/auth/**").permitAll()
+                        // All API endpoints require authentication
+                        .requestMatchers("/api/**").authenticated()
+                        
+                        // Everything else requires authentication
+                        .anyRequest().authenticated())
+                // Disable default form login!
+                .formLogin(form -> form.disable());
+        // If you want to use stateless JWT add extra config here
 
         return http.build();
     }

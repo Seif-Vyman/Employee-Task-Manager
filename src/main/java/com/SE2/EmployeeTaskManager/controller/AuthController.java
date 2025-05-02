@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.*;
 
 import com.SE2.EmployeeTaskManager.entity.User;
 import com.SE2.EmployeeTaskManager.service.UserService;
-
+import com.SE2.EmployeeTaskManager.dto.LoginRequest;
+import com.SE2.EmployeeTaskManager.dto.RegisterRequest;
+import java.util.Map;
+import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -23,27 +26,35 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestParam String username, @RequestParam String password) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
-            );
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsername(),
+                            loginRequest.getPassword()));
 
             if (authentication.isAuthenticated()) {
-                return ResponseEntity.ok("Login successful");
+                // Get roles from the authentication object
+                var authorities = authentication.getAuthorities()
+                        .stream()
+                        .map(grantedAuth -> grantedAuth.getAuthority())
+                        .collect(Collectors.toList());
+
+                return ResponseEntity.ok(Map.of(
+                        "message", "Login successful",
+                        "roles", authorities));
             } else {
                 return ResponseEntity.status(401).body("Invalid credentials");
             }
-
         } catch (AuthenticationException ex) {
             return ResponseEntity.status(401).body("Login failed: " + ex.getMessage());
         }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
-        User savedUser = userService.registerUser(user);
-        if(savedUser == null){
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
+        User savedUser = userService.registerUser(registerRequest);
+        if (savedUser == null) {
             return ResponseEntity.badRequest().body("Username or Email already exists");
         }
         return ResponseEntity.ok(savedUser);

@@ -189,17 +189,7 @@
 </head>
 
 <body style="background: #962d44">
-  <div class="message-container" data-timeout="5000"> <!-- 5000 milliseconds = 5 seconds -->
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <div class="message" style="display: none;">
-      {% for message in messages %}
-      <p>{{ message }}</p>
-      {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
-  </div>
+  
   <div id="sidebar" class="bg-gray-900 text-white h-screen w-64 fixed top-0 left-0 p-4">
     <h2 class="text-xl font-semibold mb-4" th:text="${employee.username} + ' Dashboard' "></h2>
 
@@ -231,10 +221,6 @@
 
     <div id="add-admin-content" class="hidden" style="display: block;">
 
-
-      {% for task in tasks %}
-
-      {% endfor %}
       <form method="get" th:action="@{/employee/dashboard}">
         <label>
           <input type="checkbox" name="filterByStatus" th:checked="${filterByStatus ? 'checked' : null}"
@@ -252,32 +238,9 @@
             <th class="text-left py-3 px-4 font-semibold">Action</th>
           </tr>
         </thead>
-        <tbody>
-          <tr th:each="task : ${tasks}" th:if="${task != null}">
-            <td th:text="${task.title}"></td>
-            <td th:text="${task.description}"></td>
-            <td th:text="${task.deadline}"></td>
-            <td th:text="${task.deadline != null and task.deadline.isBefore(now) ? 'Invalid' : task.status}"></td>
-            <td>
-              <span th:if="${task.deadline != null and task.deadline.isBefore(now)}">Invalid</span>
-              <span th:unless="${task.deadline != null and task.deadline.isBefore(now)}">
-                <div th:switch="${task.status}">
-                  <form th:case="'pending'"
-                    th:action="@{'/tasks/updateStatus/' + ${task.id} + '?filterByStatus=' + ${filterByStatus}}"
-                    method="post">
-                    <button class="send-email-button" type="submit">Start</button>
-                  </form>
-                  <form th:case="'in progress'"
-                    th:action="@{'/tasks/updateStatus/' + ${task.id} + '?filterByStatus=' + ${filterByStatus}}"
-                    method="post">
-                    <button class="send-email-button" type="submit">Finish</button>
-                  </form>
-                  <span th:case="'finished'">Done</span>
-                </div>
-              </span>
-            </td>
-          </tr>
-        </tbody>
+        <tbody id="task-table-body">
+          <!-- Rows will be populated by JavaScript -->
+      </tbody>
       </table>
     </div>
 
@@ -288,80 +251,40 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      const sidebarLinks = document.querySelectorAll('#sidebar a');
-      const addAdminContent = document.getElementById('add-admin-content');
-      const contentTitle = document.getElementById('content-title');
-
-      function getUserIdFromUrl() {
-        const params = new URLSearchParams(window.location.search);
-        return params.get('userId');
-      }
-
-      sidebarLinks.forEach(link => {
-        link.addEventListener('click', function (event) {
-          event.preventDefault();
-          sidebarLinks.forEach(item => item.classList.remove('active', 'bg-blue-500'));
-          this.classList.add('active', 'bg-blue-500');
-          const option = this.textContent.trim();
-          showContent(option);
-        });
-      });
-
-      function showContent(option) {
-        contentTitle.textContent = option;
-        hideAllContent();
-        if (option === 'View Tasks') {
-          addAdminContent.style.display = 'block';
-          fetchAndDisplayTasks();
-        }
-      }
-
-      function hideAllContent() {
-        addAdminContent.style.display = 'none';
-      }
-
-      function fetchAndDisplayTasks() {
-        const userId = getUserIdFromUrl();
-        if (!userId) {
-          console.error('No userId in URL!');
-          return;
-        }
-        fetch(`/api/tasks/user/${userId}`)
-          .then(response => {
-            if (response.ok) return response.json();
-            else window.location.replace('/html/login.html');
-          })
-          .then(tasks => {
-            if (!tasks) return;
-            const tbody = addAdminContent.querySelector('tbody');
-            tbody.innerHTML = '';
+      fetch('/api/employee/tasks')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('HTTP error ' + response.status);
+          }
+          return response.json();
+        })
+        .then(tasks => {
+          const tbody = document.getElementById('task-table-body');
+          tbody.innerHTML = ''; // clear any placeholder
+          if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center">No tasks assigned!</td></tr>`;
+          } else {
             tasks.forEach(task => {
-              const row = document.createElement('tr');
-              row.innerHTML = `
-                <td>${task.title}</td>
-                <td>${task.description}</td>
-                <td>${task.dueDate ? task.dueDate : ''}</td>
-                <td>${task.status}</td>
-                <td>
-                  <form action="/tasks/updateStatus/${task.id}" method="post">
-                    <button class="send-email-button" type="submit">update status</button>
-                  </form>
-                </td>
+              const deadline = task.deadline ? new Date(task.deadline).toLocaleString() : '';
+              tbody.innerHTML += `
+                 <tr>
+                   <td>${task.title ?? ''}</td>
+                   <td>${task.description ?? ''}</td>
+                   <td>${deadline}</td>
+                   <td>${task.status ?? ''}</td>
+                   <td>${task.status === 'COMPLETED' ? '✔' : 'Pending'}</td>
+                 </tr>
               `;
-              tbody.appendChild(row);
             });
-          })
-          .catch(err => {
-            console.error('Error fetching tasks:', err);
-          });
-      }
-
-      // Auto-fetch tasks if "View Tasks" is visible on load
-      if (addAdminContent && !addAdminContent.classList.contains('hidden') && addAdminContent.style.display !== 'none') {
-        fetchAndDisplayTasks();
-      }
+          }
+        })
+        .catch(error => {
+          console.error('Failed to load tasks:', error);
+          document.getElementById('task-table-body').innerHTML =
+            `<tr><td colspan="5" class="text-center">Failed to load tasks!</td></tr>`;
+        });
     });
-  </script>
+    </script>
 
 
 

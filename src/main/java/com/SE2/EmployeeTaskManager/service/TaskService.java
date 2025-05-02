@@ -64,6 +64,13 @@ public class TaskService {
         }
     }
 
+    public List<Task> findByUser(User user) {
+        return taskRepository.findByAssignedTo(user);
+    }
+
+    public List<Task> findByUserAndStatus(User user, String status) {
+        return taskRepository.findByAssignedToAndStatus(user, status);
+    }
     @Scheduled(fixedRate = 5000) // every 5 sec
     public void autoInvalidateOverdueTasks() {
         List<Task> tasks = getAllTasks(); // Or taskRepository.findAll();

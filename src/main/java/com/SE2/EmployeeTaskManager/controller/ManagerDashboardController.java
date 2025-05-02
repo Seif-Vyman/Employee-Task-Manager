@@ -5,28 +5,49 @@ import com.SE2.EmployeeTaskManager.service.TaskService;
 import com.SE2.EmployeeTaskManager.entity.User;
 import com.SE2.EmployeeTaskManager.entity.Task;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.time.LocalDateTime;
+
+@RestController
+@RequestMapping("/api/manager")
 public class ManagerDashboardController {
 
     @Autowired
     private UserService userService;
+
     @Autowired
     private TaskService taskService;
 
-    @GetMapping("/manager/dashboard")
-    public String dashboard(Model model) {
-
-        model.addAttribute("employees", userService.getEmployees());
-        model.addAttribute("tasks", taskService.getAllTasks()); // or leave out if not needed
-
-        return "admin"; // Make sure this matches your HTML Thymeleaf filename
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> dashboard() {
+        return ResponseEntity.ok(new Object[]{
+                userService.getEmployees(),
+                taskService.getAllTasks()
+        });
     }
 
+    @PostMapping("/tasks/add")
+    public ResponseEntity<?> addTask(
+            @RequestParam("employee_id") Long employeeId,
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam("due_date") String deadline
+    ) {
+        User employee = userService.getUserById(employeeId);
+        if (employee == null) {
+            return ResponseEntity.badRequest().body("Employee not found");
+        }
+
+        Task task = new Task();
+        task.setTitle(title);
+        task.setDescription(description);
+        task.setDeadline(LocalDateTime.parse(deadline));
+        task.setAssignedTo(employee);
+        task.setStatus("pending");
+        taskService.saveTask(task);
+
+        return ResponseEntity.ok("Task assigned successfully");
+    }
 }
