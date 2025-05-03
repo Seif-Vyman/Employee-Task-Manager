@@ -105,6 +105,23 @@
       margin-bottom: 10px;
     }
     .message p { margin: 0; padding: 5px 10px; }
+    .logout-link {
+      padding: 10px 20px;
+      border-radius: 5px;
+      color: #ccc;
+      text-decoration: none;
+      background-color: #272727;
+      transition: background-color 0.3s, color 0.3s;
+      display: block;
+      width: 100%;
+      text-align: center;
+      margin-top: auto;
+      margin-bottom: 0;
+    }
+    .logout-link:hover {
+      background-color: #555;
+      color: #fff;
+    }
   </style>
 </head>
 <body style="background: #808080">
@@ -112,6 +129,7 @@
   <h2 class="text-xl font-semibold mb-4">Manager Dashboard</h2>
   <a href="#" class="sidebar-link active bg-blue-500" onclick="showContent('Add Task')">Add Task</a>
   <a href="#" class="sidebar-link" onclick="showContent('View Tasks')">View Tasks</a>
+  <a href="#" onclick="handleLogout()" class="logout-link">Logout</a>
 </div>
 <div id="content" class="content-area">
   <h1 id="content-title" class="content-title">Add Task</h1>
@@ -165,6 +183,26 @@
 </div>
 
 <script>
+  // Function to handle logout
+  async function handleLogout() {
+    try {
+      const response = await fetch('/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        window.location.href = '/login.html';
+      } else {
+        console.error('Logout failed');
+        alert('Logout failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+      alert('Error during logout. Please try again.');
+    }
+  }
+
   let employees = [];
   let tasks = [];
 

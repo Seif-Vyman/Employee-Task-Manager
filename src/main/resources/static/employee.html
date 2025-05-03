@@ -206,7 +206,7 @@
 
 
       View Tasks
-      <a href="{{ url_for('logout') }}" class="logout-link" style="margin-top: auto; margin-bottom: 0;">
+      <a href="#" onclick="handleLogout()" class="logout-link" style="margin-top: auto; margin-bottom: 0;">
         Logout
       </a>
 
@@ -250,41 +250,121 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      fetch('/api/employee/tasks')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('HTTP error ' + response.status);
-          }
-          return response.json();
-        })
-        .then(tasks => {
-          const tbody = document.getElementById('task-table-body');
-          tbody.innerHTML = ''; // clear any placeholder
-          if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center">No tasks assigned!</td></tr>`;
-          } else {
-            tasks.forEach(task => {
-              const deadline = task.deadline ? new Date(task.deadline).toLocaleString() : '';
-              tbody.innerHTML += `
-                 <tr>
-                   <td>${task.title ?? ''}</td>
-                   <td>${task.description ?? ''}</td>
-                   <td>${deadline}</td>
-                   <td>${task.status ?? ''}</td>
-                   <td>${task.status === 'COMPLETED' ? '✔' : 'Pending'}</td>
-                 </tr>
-              `;
-            });
-          }
-        })
-        .catch(error => {
-          console.error('Failed to load tasks:', error);
-          document.getElementById('task-table-body').innerHTML =
-            `<tr><td colspan="5" class="text-center">Failed to load tasks!</td></tr>`;
+    // Function to handle logout
+    async function handleLogout() {
+      try {
+        const response = await fetch('/auth/logout', {
+          method: 'POST',
+          credentials: 'include'
         });
-    });
-    </script>
+
+        if (response.ok) {
+          // Clear any local storage or session data if needed
+          window.location.href = '/login.html';
+        } else {
+          console.error('Logout failed');
+          alert('Logout failed. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error during logout:', error);
+        alert('Error during logout. Please try again.');
+      }
+    }
+
+    // Function to check if deadline has passed
+    function isDeadlinePassed(deadline) {
+      if (!deadline) return false;
+      const deadlineDate = new Date(deadline);
+      return deadlineDate < new Date();
+    }
+
+    // Function to get appropriate button based on status and deadline
+    function getActionButton(task) {
+      const deadlinePassed = isDeadlinePassed(task.deadline);
+      
+      if (deadlinePassed) {
+        return `<button class="bg-red-500 text-white px-3 py-1 rounded cursor-not-allowed" disabled>Invalid</button>`;
+      }
+
+      switch(task.status?.toUpperCase()) {
+        case 'PENDING':
+          return `<button onclick="updateTaskStatus(${task.id}, 'IN_PROGRESS')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">Start</button>`;
+        case 'IN_PROGRESS':
+          return `<button onclick="updateTaskStatus(${task.id}, 'COMPLETED')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">Finish</button>`;
+        case 'COMPLETED':
+          return `<button class="bg-gray-500 text-white px-3 py-1 rounded cursor-not-allowed" disabled>Completed</button>`;
+        default:
+          return `<button class="bg-gray-500 text-white px-3 py-1 rounded cursor-not-allowed" disabled>Unknown</button>`;
+      }
+    }
+
+    // Function to update task status
+    async function updateTaskStatus(taskId, newStatus) {
+      try {
+        const response = await fetch(`/api/tasks/${taskId}/status?status=${newStatus}`, {
+          method: 'PUT',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update task status');
+        }
+
+        // Refresh the task list after successful update
+        await fetchAndUpdateTasks();
+      } catch (error) {
+        console.error('Error updating task status:', error);
+        alert('Failed to update task status. Please try again.');
+      }
+    }
+
+    // Function to fetch and update tasks
+    async function fetchAndUpdateTasks() {
+      try {
+        const response = await fetch('/api/employee/dashboard', {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('HTTP error ' + response.status);
+        }
+        
+        const tasks = await response.json();
+        const tbody = document.getElementById('task-table-body');
+        tbody.innerHTML = ''; // clear any placeholder
+        
+        if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center">No tasks assigned!</td></tr>`;
+        } else {
+          tasks.forEach(task => {
+            const deadline = task.deadline ? new Date(task.deadline).toLocaleString() : '';
+            const deadlinePassed = isDeadlinePassed(task.deadline);
+            const status = deadlinePassed ? 'INVALID' : task.status;
+            
+            tbody.innerHTML += `
+              <tr>
+                <td>${task.title ?? ''}</td>
+                <td>${task.description ?? ''}</td>
+                <td>${deadline}</td>
+                <td>${status}</td>
+                <td>${getActionButton(task)}</td>
+              </tr>
+            `;
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load tasks:', error);
+        document.getElementById('task-table-body').innerHTML =
+          `<tr><td colspan="5" class="text-center">Failed to load tasks!</td></tr>`;
+      }
+    }
+
+    // Initial load when page loads
+    document.addEventListener('DOMContentLoaded', fetchAndUpdateTasks);
+
+    // Refresh tasks every 5 seconds
+    setInterval(fetchAndUpdateTasks, 5000);
+  </script>
 
 
 

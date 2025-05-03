@@ -62,4 +62,10 @@ public class AuthController {
         }
         return ResponseEntity.ok(savedUser);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok("Logged out successfully");
+    }
 }
