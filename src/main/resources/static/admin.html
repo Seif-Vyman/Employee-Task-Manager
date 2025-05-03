@@ -175,7 +175,12 @@
     sidebarHighlight(option);
 
     if (option === 'View Tasks') {
+    fetchDashboard().then(() => {
+      console.log("After fetchDashboard():", tasks); // Log tasks here
       renderTasksTable();
+    });
+  } else if (option === 'Add Task') {
+      populateEmployeeSelect();
     }
   }
 
@@ -188,106 +193,95 @@
     });
   }
 
-  
-
   function populateEmployeeSelect() {
     const sel = document.getElementById('employeeSelect');
     sel.innerHTML = '';
     employees.forEach(emp =>
       sel.innerHTML += `<option value="${emp.id}">${emp.username} (${emp.email})</option>`);
   }
+
   function renderTasksTable() {
-    const tbody = document.getElementById('tasksTableBody');
-    tbody.innerHTML = ''; // Clear existing content
+    console.log("Tasks in renderTasksTable():", tasks); // Log tasks here
+  const tbody = document.getElementById('tasksTableBody');
+  tbody.innerHTML = ''; // Clear existing content
+
 
     // Check if tasks array exists and has items
-    if (!tasks || !Array.isArray(tasks)) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" class="py-3 px-4 text-center">No tasks available</td>
-            </tr>`;
-        return;
+    if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
+      tbody.innerHTML = `
+          <tr>
+              <td colspan="5" class="py-3 px-4 text-center">No tasks available</td>
+          </tr>`;
+      return;
     }
 
     tasks.forEach(task => {
-        // Find the assigned employee
-        const employee = employees.find(emp => emp.id === task.assignedTo?.id);
-        
-        // Create a new row
-        const row = document.createElement('tr');
-        
-        // Format the deadline date
-        const deadline = task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline';
-        
-        // Get status styling
-        const statusStyle = getStatusStyle(task.status);
-        
-        // Populate the row
-        row.innerHTML = `
-            <td class="py-3 px-4">${task.title || 'N/A'}</td>
-            <td class="py-3 px-4">${employee ? employee.username : 'Unassigned'}</td>
-            <td class="py-3 px-4">${employee ? employee.email : 'N/A'}</td>
-            <td class="py-3 px-4">
-                <span class="px-2 py-1 rounded-full ${statusStyle}">
-                    ${task.status || 'UNKNOWN'}
-                </span>
-            </td>
-            <td class="py-3 px-4">${deadline}</td>
-        `;
-        
-        tbody.appendChild(row);
+      // Find the assigned employee
+      const employee = employees.find(emp => 
+        (emp.tasks && emp.tasks.some(t => t.id === task.id))
+      );
+      
+      
+      // Create a new row
+      const row = document.createElement('tr');
+      
+      // Format the deadline date
+      const deadline = task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline';
+      
+      // Get status styling
+      const statusStyle = getStatusStyle(task.status);
+      
+      // Populate the row
+      row.innerHTML = `
+          <td class="py-3 px-4">${task.title || 'N/A'}</td>
+          <td class="py-3 px-4">${employee ? employee.username : 'Unassigned'}</td>
+          <td class="py-3 px-4">${employee ? employee.email : 'N/A'}</td>
+          <td class="py-3 px-4">
+              <span class="px-2 py-1 rounded-full ${statusStyle}">
+                  ${task.status || 'UNKNOWN'}
+              </span>
+          </td>
+          <td class="py-3 px-4">${deadline}</td>
+      `;
+      
+      tbody.appendChild(row);
     });
-}
+  }
 
-// Helper function to get status styling
-function getStatusStyle(status) {
-    switch(status) {
-        case 'PENDING':
-            return 'bg-yellow-500 text-white';
-        case 'IN_PROGRESS':
-            return 'bg-blue-500 text-white';
-        case 'COMPLETED':
-            return 'bg-green-500 text-white';
-        default:
-            return 'bg-gray-500 text-white';
+  // Helper function to get status styling
+  function getStatusStyle(status) {
+    switch(status?.toUpperCase?.()) {
+      case 'PENDING':
+        return 'bg-yellow-500 text-white';
+      case 'IN_PROGRESS':
+        return 'bg-blue-500 text-white';
+      case 'COMPLETED':
+        return 'bg-green-500 text-white';
+      default:
+        return 'bg-gray-500 text-white';
     }
-}
+  }
 
-// Also modify fetchDashboard to handle errors
-async function fetchDashboard() {
+  // Also modify fetchDashboard to handle errors
+  async function fetchDashboard() {
     try {
-        const resp = await fetch('/api/manager/dashboard', {
-            credentials: 'include'
-        });
-        
-        if (!resp.ok) {
-            throw new Error(`HTTP error! status: ${resp.status}`);
-        }
-        
-        const data = await resp.json();
-        employees = data.employees || [];
-        tasks = data.tasks || [];
-        console.log("Dashboard arrays:", employees, tasks);
-       
-        populateEmployeeSelect();
-        renderTasksTable();
+      const resp = await fetch('/api/manager/dashboard', {
+        credentials: 'include'
+      });
+      
+      if (!resp.ok) {
+        throw new Error(`HTTP error! status: ${resp.status}`);
+      }
+      
+      const data = await resp.json();
+      employees = data.employees || [];
+      tasks = data.tasks || [];
+      console.log("Tasks fetched in fetchDashboard():", tasks); // Log tasks here
     } catch (error) {
-        console.error("Error fetching dashboard:", error);
-        // Handle error appropriately
-        const tbody = document.getElementById('tasksTableBody');
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" class="py-3 px-4 text-center text-red-500">
-                    Error loading tasks. Please try again later.
-                </td>
-            </tr>`;
+      console.error("Error fetching dashboard:", error);
+      throw error;
     }
-}
-// Helper function to get status styling
-
-
-// Helper function to get status styling
-
+  }
   // Handle add task form submit
   document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -308,7 +302,9 @@ async function fetchDashboard() {
     if (resp.ok) {
       msgDiv.innerHTML = `<div class="message"><p>Task added successfully!</p></div>`;
       form.reset();
-      fetchDashboard(); // Refresh task list!
+      fetchDashboard().then(() => {
+        renderTasksTable();
+      }); // Refresh task list!
     } else {
       const errText = await resp.text();
       msgDiv.innerHTML = `<div class="message"><p>${errText}</p></div>`;
@@ -316,7 +312,11 @@ async function fetchDashboard() {
     setTimeout(() => { msgDiv.innerHTML = ''; }, 4000);
   });
 
-  window.onload = fetchDashboard;
+  window.onload = () => {
+    fetchDashboard().then(() => {
+      populateEmployeeSelect();
+    });
+  };
 </script>
 </body>
 </html>

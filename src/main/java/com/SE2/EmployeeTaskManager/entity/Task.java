@@ -6,6 +6,8 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Setter
 @Getter
 @Entity
@@ -28,6 +30,7 @@ public class Task {
     // Many tasks can be assigned to one user
     @ManyToOne
     @JoinColumn(name = "assigned_to")
+    @JsonIgnore
     private User assignedTo;
 
 

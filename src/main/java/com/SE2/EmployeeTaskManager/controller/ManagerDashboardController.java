@@ -27,6 +27,7 @@ public class ManagerDashboardController {
         Map<String, Object> map = new HashMap<>();
         map.put("employees", userService.getEmployees());
         map.put("tasks", taskService.getAllTasks());
+        System.out.println("Tasks in api: " + taskService.getAllTasks());
         return ResponseEntity.ok(map);
     }
 
