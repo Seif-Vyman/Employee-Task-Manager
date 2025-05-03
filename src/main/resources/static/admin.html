@@ -1,7 +1,10 @@
-<html lang="en" xmlns:th="http://www.thymeleaf.org"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.2/tailwind.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.0.2/tailwind.min.css">
   <title>Manager Dashboard</title>
   <style>
     .send-email-button {
@@ -107,119 +110,213 @@
 <body style="background: #808080">
 <div id="sidebar" class="bg-gray-900 text-white h-screen w-64 fixed top-0 left-0 p-4">
   <h2 class="text-xl font-semibold mb-4">Manager Dashboard</h2>
-  <!-- /////////////////////////////////  FIX URL  //////////////////////////////////// -->
-  
-  <a href="#" class="sidebar-link active bg-blue-500" onclick="showAddTask()">
-    <svg class="w-6 h-6 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm10 0h2a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1h2V1a1 1 0 112 0v1h4V1a1 1 0 112 0v1zM6 5a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 4a1 1 0 100 2h8a1 1 0 100-2H7zm-1 4a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-    </svg>
-    Add Task
-  </a>
-  <a href="#" class="sidebar-link" onclick="showTasks()">
-    <svg class="w-6 h-6 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1.105-6.972a.5.5 0 00-.002 0h-.001a.5.5 0 00-.442.383l-.093.498-.504.083a.5.5 0 00-.263.876l.363.36-.082.503a.5.5 0 00.294.524.498.498 0 00.566-.122l.407-.405.407.404a.498.498 0 00.565.122.5.5 0 00.293-.524l-.082-.504.363-.36a.5.5 0 00-.262-.876l-.504-.082-.094-.498a.5.5 0 00-.444-.383h-.001a.5.5 0 00-.002 0z" clip-rule="evenodd"></path>
-    </svg>
-    View Tasks
-  </a>
+  <a href="#" class="sidebar-link active bg-blue-500" onclick="showContent('Add Task')">Add Task</a>
+  <a href="#" class="sidebar-link" onclick="showContent('View Tasks')">View Tasks</a>
 </div>
 <div id="content" class="content-area">
   <h1 id="content-title" class="content-title">Add Task</h1>
-  <div id="employees-content" class="hidden" style="display: none;">
-    
-  </div>
 
+  <!-- Add Task Form -->
   <div id="add-task-content" class="hidden" style="display: block;">
     <div class="w-full max-w-xl mx-auto">
-      <!-- url URLLLLLLLLLL -->
-      <form th:action="@{/tasks/add}" method="post" class="shadow-md rounded px-8 pt-6 pb-8 mb-4" style="background-color: rgb(42,47,46)">
+      <form id="addTaskForm" class="shadow-md rounded px-8 pt-6 pb-8 mb-4" style="background-color: rgb(42,47,46)">
         <div class="mb-4">
-          <label class="block text-sm font-bold mb-2">Employee ID</label>
-          <input name="employee_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" placeholder="Employee ID">
+          <label class="block text-sm font-bold mb-2">Assign to Employee</label>
+          <select id="employeeSelect" name="employee_id"
+                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></select>
         </div>
         <div class="mb-4">
           <label class="block text-sm font-bold mb-2">Title</label>
-          <input name="title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" placeholder="Title">
+          <input name="title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" placeholder="Title" required>
         </div>
         <div class="mb-4">
           <label class="block text-sm font-bold mb-2">Description</label>
-          <textarea name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Description"></textarea>
+          <textarea name="description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Description" required></textarea>
         </div>
         <div class="mb-4">
           <label class="block text-sm font-bold mb-2">Due Date</label>
-          <input name="due_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="date">
+          <input name="due_date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="datetime-local" required>
         </div>
         <div class="flex items-center justify-between">
           <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add Task</button>
         </div>
       </form>
+      <div id="add-task-msg" class="message-container"></div>
     </div>
   </div>
 
+  <!-- View Tasks Table -->
   <div id="show-tasks" style="display: none;">
     <table class="rounded-lg overflow-hidden">
       <thead class="bg-gray-100">
       <tr>
         <th class="text-left py-3 px-4 font-semibold">Task Title</th>
-        <th class="text-left py-3 px-4 font-semibold">Employee ID</th>
-        <th class="text-left py-3 px-4 font-semibold">Name</th>
+        <th class="text-left py-3 px-4 font-semibold">Employee</th>
         <th class="text-left py-3 px-4 font-semibold">Email</th>
         <th class="text-left py-3 px-4 font-semibold">Task Status</th>
         <th class="text-left py-3 px-4 font-semibold">Deadline</th>
       </tr>
       </thead>
-      <tbody>
-         <!-- /////////////////////////// -->
-      <tr th:each="task : ${tasks}">
-        <td th:text="${task.title}" class="text-left py-3 px-4"></td>
-        <td th:text="${task.assignedTo.id}" class="text-left py-3 px-4"></td>
-        <td th:text="${task.assignedTo.username}" class="text-left py-3 px-4"></td>
-        <td th:text="${task.assignedTo.email}" class="text-left py-3 px-4"></td>
-        <td th:text="${task.status}" class="text-left py-3 px-4"></td>
-        <td th:text="${task.deadline}" class="text-left py-3 px-4"></td>
-      </tr>
+      <tbody id="tasksTableBody">
+        <!-- Populated by JavaScript -->
       </tbody>
     </table>
   </div>
 </div>
 
 <script>
-  setTimeout(function() {
-    const flashMessages = document.querySelectorAll('.message');
-    flashMessages.forEach(message => {
-      message.style.display = 'none';
-    });
-  }, 5000);
-
-  const sidebarLinks = document.querySelectorAll('#sidebar a');
-  const contentTitle = document.getElementById('content-title');
-  const employeesContent = document.getElementById('employees-content');
-  const addTaskContent = document.getElementById('add-task-content');
-  const addAdminContent = document.getElementById('show-tasks');
-
-  sidebarLinks.forEach(link => {
-    link.addEventListener('click', event => {
-      event.preventDefault();
-      sidebarLinks.forEach(item => item.classList.remove('active', 'bg-blue-500'));
-      link.classList.add('active', 'bg-blue-500');
-      const option = link.textContent.trim();
-      showContent(option);
-    });
-  });
+  let employees = [];
+  let tasks = [];
 
   function showContent(option) {
-    contentTitle.textContent = option;
-    employeesContent.style.display = 'none';
-    addTaskContent.style.display = 'none';
-    addAdminContent.style.display = 'none';
+    document.getElementById('content-title').textContent = option;
+    document.getElementById('add-task-content').style.display = (option === 'Add Task') ? 'block' : 'none';
+    document.getElementById('show-tasks').style.display = (option === 'View Tasks') ? 'block' : 'none';
+    sidebarHighlight(option);
 
-    if (option === 'Employees') {
-      employeesContent.style.display = 'block';
-    } else if (option === 'Add Task') {
-      addTaskContent.style.display = 'block';
-    } else if (option === 'View Tasks') {
-      addAdminContent.style.display = 'block';
+    if (option === 'View Tasks') {
+      renderTasksTable();
     }
   }
-</script>
 
-</body></html>
+  function sidebarHighlight(selectedText) {
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.classList.remove('active', 'bg-blue-500');
+      if (link.textContent.trim() === selectedText) {
+        link.classList.add('active', 'bg-blue-500');
+      }
+    });
+  }
+
+  
+
+  function populateEmployeeSelect() {
+    const sel = document.getElementById('employeeSelect');
+    sel.innerHTML = '';
+    employees.forEach(emp =>
+      sel.innerHTML += `<option value="${emp.id}">${emp.username} (${emp.email})</option>`);
+  }
+  function renderTasksTable() {
+    const tbody = document.getElementById('tasksTableBody');
+    tbody.innerHTML = ''; // Clear existing content
+
+    // Check if tasks array exists and has items
+    if (!tasks || !Array.isArray(tasks)) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="py-3 px-4 text-center">No tasks available</td>
+            </tr>`;
+        return;
+    }
+
+    tasks.forEach(task => {
+        // Find the assigned employee
+        const employee = employees.find(emp => emp.id === task.assignedTo?.id);
+        
+        // Create a new row
+        const row = document.createElement('tr');
+        
+        // Format the deadline date
+        const deadline = task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline';
+        
+        // Get status styling
+        const statusStyle = getStatusStyle(task.status);
+        
+        // Populate the row
+        row.innerHTML = `
+            <td class="py-3 px-4">${task.title || 'N/A'}</td>
+            <td class="py-3 px-4">${employee ? employee.username : 'Unassigned'}</td>
+            <td class="py-3 px-4">${employee ? employee.email : 'N/A'}</td>
+            <td class="py-3 px-4">
+                <span class="px-2 py-1 rounded-full ${statusStyle}">
+                    ${task.status || 'UNKNOWN'}
+                </span>
+            </td>
+            <td class="py-3 px-4">${deadline}</td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+// Helper function to get status styling
+function getStatusStyle(status) {
+    switch(status) {
+        case 'PENDING':
+            return 'bg-yellow-500 text-white';
+        case 'IN_PROGRESS':
+            return 'bg-blue-500 text-white';
+        case 'COMPLETED':
+            return 'bg-green-500 text-white';
+        default:
+            return 'bg-gray-500 text-white';
+    }
+}
+
+// Also modify fetchDashboard to handle errors
+async function fetchDashboard() {
+    try {
+        const resp = await fetch('/api/manager/dashboard', {
+            credentials: 'include'
+        });
+        
+        if (!resp.ok) {
+            throw new Error(`HTTP error! status: ${resp.status}`);
+        }
+        
+        const data = await resp.json();
+        employees = data.employees || [];
+        tasks = data.tasks || [];
+        console.log("Dashboard arrays:", employees, tasks);
+       
+        populateEmployeeSelect();
+        renderTasksTable();
+    } catch (error) {
+        console.error("Error fetching dashboard:", error);
+        // Handle error appropriately
+        const tbody = document.getElementById('tasksTableBody');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="py-3 px-4 text-center text-red-500">
+                    Error loading tasks. Please try again later.
+                </td>
+            </tr>`;
+    }
+}
+// Helper function to get status styling
+
+
+// Helper function to get status styling
+
+  // Handle add task form submit
+  document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    const payload = new URLSearchParams();
+    for (const pair of formData.entries()) {
+      payload.append(pair[0], pair[1]);
+    }
+    const resp = await fetch('/api/manager/tasks/add', {
+      method: 'POST',
+      credentials: 'include',
+      body: payload,
+      headers: { 'Accept': 'application/json' }
+    });
+    const msgDiv = document.getElementById('add-task-msg');
+    if (resp.ok) {
+      msgDiv.innerHTML = `<div class="message"><p>Task added successfully!</p></div>`;
+      form.reset();
+      fetchDashboard(); // Refresh task list!
+    } else {
+      const errText = await resp.text();
+      msgDiv.innerHTML = `<div class="message"><p>${errText}</p></div>`;
+    }
+    setTimeout(() => { msgDiv.innerHTML = ''; }, 4000);
+  });
+
+  window.onload = fetchDashboard;
+</script>
+</body>
+</html>

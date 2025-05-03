@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/manager")
@@ -22,10 +24,10 @@ public class ManagerDashboardController {
 
     @GetMapping("/dashboard")
     public ResponseEntity<?> dashboard() {
-        return ResponseEntity.ok(new Object[]{
-                userService.getEmployees(),
-                taskService.getAllTasks()
-        });
+        Map<String, Object> map = new HashMap<>();
+        map.put("employees", userService.getEmployees());
+        map.put("tasks", taskService.getAllTasks());
+        return ResponseEntity.ok(map);
     }
 
     @PostMapping("/tasks/add")

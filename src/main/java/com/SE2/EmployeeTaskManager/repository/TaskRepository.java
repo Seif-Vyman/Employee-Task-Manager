@@ -9,6 +9,4 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByAssignedTo(User user);
     List<Task> findByStatus(String status);
     List<Task> findByAssignedToAndStatus(User user, String status);
-
-    
 }

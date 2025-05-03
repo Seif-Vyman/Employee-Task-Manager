@@ -92,42 +92,40 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   try {
     const response = await fetch('/auth/login', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ username, password })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      credentials: 'include' // <--- THIS IS IMPORTANT FOR SESSIONS!
     });
 
     if (response.ok) {
       const data = await response.json();
-      // Optionally store the token locally (if using JWT)
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+       console.log("Login response:", data);
       messageDiv.textContent = "Login successful! Redirecting...";
-      messageDiv.style.color = '#4ade80'; // green
+      messageDiv.style.color = '#4ade80';
 
-      // Role-based redirect
+      
+      // Redirect based on role (example, adjust as needed)
       if (data.roles && Array.isArray(data.roles)) {
         if (data.roles.includes('ROLE_MANAGER')) {
           window.location.href = 'admin.html';
         } else if (data.roles.includes('ROLE_EMPLOYEE')) {
           window.location.href = 'employee.html';
         } else {
-          window.location.href = 'user.html'; // fallback or general user page
+          window.location.href = 'user.html';
         }
       } else {
         messageDiv.textContent = "Login succeeded, but no role found.";
-        messageDiv.style.color = '#f87171'; // red
+        messageDiv.style.color = '#f87171';
       }
-    } else {
+    }
+     else {
       const error = await response.text();
       messageDiv.textContent = error || "Login failed.";
-      messageDiv.style.color = '#f87171'; // red
+      messageDiv.style.color = '#f87171';
     }
   } catch (err) {
     messageDiv.textContent = 'Login failed: ' + err.message;
-    messageDiv.style.color = '#f87171'; // red
+    messageDiv.style.color = '#f87171';
   }
 });
 </script>

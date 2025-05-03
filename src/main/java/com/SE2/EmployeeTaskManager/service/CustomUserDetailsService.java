@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 
+
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -20,12 +21,19 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
-                      .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+        // Debug print
+        System.out.println("Username: " + username);
+        System.out.println("Role from DB: " + user.getRole());
+        
+        String roleWithPrefix = "ROLE_" + user.getRole();
+        System.out.println("Authority created: " + roleWithPrefix);
+        
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
+                Collections.singleton(new SimpleGrantedAuthority(roleWithPrefix))
         );
     }
 }

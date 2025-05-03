@@ -5,16 +5,20 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 
 import com.SE2.EmployeeTaskManager.service.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
@@ -42,35 +46,45 @@ public class SecurityConfig {
     }
 
     @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authz -> authz
-                        // Permit all static files (html, css, js, etc)
-                        .requestMatchers(
-                                "/",
-                                "/index.html",
-                                "/login.html",
-                                "/register.html",
-                                "/manager.html",
-                                "/employee.html",
-                                "/user.html",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**",
-                                "/favicon.ico")
-                        .permitAll()
-                        // Permit register and login endpoints
-                        .requestMatchers("/auth/**").permitAll()
-                        // All API endpoints require authentication
-                        .requestMatchers("/api/**").authenticated()
-                        
-                        // Everything else requires authentication
-                        .anyRequest().authenticated())
-                // Disable default form login!
-                .formLogin(form -> form.disable());
-        // If you want to use stateless JWT add extra config here
-
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session
+                // Use default session management without maximumSessions
+                .invalidSessionUrl("/login.html"))
+            .authorizeHttpRequests(authz -> authz
+                // Static resources and HTML files
+                .requestMatchers(
+                    "/", 
+                    "/admin.html", 
+                    "/employee.html", 
+                    "/login.html", 
+                    "/register.html", 
+                    "/css/**", 
+                    "/js/**", 
+                    "/images/**", 
+                    "/favicon.ico")
+                .permitAll()
+                // Auth endpoints are public
+                .requestMatchers("/auth/**").permitAll()
+                // This is the critical part - match the exact role text from your login response
+                .requestMatchers("/api/manager/**").hasRole("MANAGER")
+                .requestMatchers("/api/employee/**").hasRole("EMPLOYEE")
+                // Other API endpoints require authentication
+                .requestMatchers("/api/**").authenticated()
+                // All other requests need authentication
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form.disable())
+            .securityContext(securityContext -> securityContext
+                .securityContextRepository(securityContextRepository())
+                .requireExplicitSave(false));
+        
         return http.build();
     }
 }
