@@ -1,0 +1,8 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: login_route
+          uri: http://localhost:8081  # The URL where your API is running
+          predicates:
+            - Path=/api/auth/login,/api/auth/register,/api/auth/logout
