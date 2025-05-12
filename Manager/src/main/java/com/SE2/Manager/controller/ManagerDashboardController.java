@@ -1,0 +1,56 @@
+package com.SE2.Manager.controller;
+
+import com.SE2.Manager.service.UserService;
+import com.SE2.Manager.service.TaskService;
+import com.SE2.Manager.entity.User;
+import com.SE2.Manager.entity.Task;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/manager")
+public class ManagerDashboardController {
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private TaskService taskService;
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> dashboard() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("employees", userService.getEmployees());
+        map.put("tasks", taskService.getAllTasks());
+        System.out.println("Tasks in api: " + taskService.getAllTasks());
+        return ResponseEntity.ok(map);
+    }
+
+    @PostMapping("/tasks/add")
+    public ResponseEntity<?> addTask(
+            @RequestParam("employee_id") Long employeeId,
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam("due_date") String deadline
+    ) {
+        User employee = userService.getUserById(employeeId);
+        if (employee == null) {
+            return ResponseEntity.badRequest().body("Employee not found");
+        }
+
+        Task task = new Task();
+        task.setTitle(title);
+        task.setDescription(description);
+        task.setDeadline(LocalDateTime.parse(deadline));
+        task.setAssignedTo(employee);
+        task.setStatus("pending");
+        taskService.saveTask(task);
+
+        return ResponseEntity.ok("Task assigned successfully");
+    }
+}

@@ -1,0 +1,19 @@
+server:
+  port: 8200  # Example port for employee-service
+
+spring:
+  application:
+    name: employee-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/employeetaskmanager
+    username: postgres
+    password: 123
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
